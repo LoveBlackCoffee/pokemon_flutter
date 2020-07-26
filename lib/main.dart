@@ -21,8 +21,7 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  var url = "https://raw.githubusercontent.com/Biuni/PokemonGO-Pokedex/master/pokedex.json";
-
+  var url = "https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/pokedex.json";
   PokeHub pokeHub;
 
   @override
@@ -30,62 +29,81 @@ class HomePageState extends State<HomePage> {
     super.initState();
 
     fetchData();
-    print("hogehoge");
   }
 
   fetchData() async {
     var res = await http.get(url);
     var decode = jsonDecode(res.body);
-    pokeHub = PokeHub.fromJson(decode);
+    pokeHub = PokeHub.fromJson2(decode);
     print(pokeHub.toJson());
     setState(() {});
   }
 
+  String getImage(int id) {
+    var url = "https://raw.githubusercontent.com/fanzeyi/pokemon.json/master/sprites/";
+    var png = "MS.png";
+    var imageURL = url + id.toString().padLeft(3, '0') + png;
+    print("imageURL:" + imageURL);
+    return imageURL;
+  }
+
   @override
   Widget build(BuildContext context) {
+    var size = MediaQuery.of(context).size;
+    var itemWidth = size.width / 2;
+    var itemHeight = 50.0;
     return Scaffold(
       appBar: AppBar(
         title: Text("ポケモン　アプリ"),
         backgroundColor: Colors.blue,
       ),
-      body: pokeHub == null
-          ? Center(
-              child: CircularProgressIndicator(),
-            )
+      body
+          : pokeHub == null ? Center(child: CircularProgressIndicator(),)
           : GridView.count(
               // 横の数
-              crossAxisCount: 2,
+              crossAxisCount: 1,
+              childAspectRatio: (itemWidth / itemHeight),
               // 取得結果
-              children: pokeHub.pokemon
+              children: pokeHub.pokemons
                   .map((poke) => Padding(
                       padding: const EdgeInsets.all(2.0),
                       child:InkWell(
                         onTap: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) => PokeDetail(pokemon: poke)));
+//                          Navigator.push(context,
+//                              MaterialPageRoute(builder: (context) => PokeDetail(pokemon: poke)));
                         },
                           child: Hero(
-                            tag: poke.img,
-                            child: Card(
-                              elevation: 3.0,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            tag: getImage(poke.id),
+//                            child: Card(
+//                              elevation: 3.0,
+                              child: Row(
+//                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: <Widget>[
                                   Container(
-                                    height: 100.0,
-                                    width: 100.0,
+                                    height: 50.0,
+                                    width: 50.0,
                                     decoration: BoxDecoration(
                                         image: DecorationImage(
-                                            image: NetworkImage(poke.img))),
+                                            image: NetworkImage(getImage(poke.id)))),
                                   ),
-                                  Text(
-                                    poke.name,
-                                    style: TextStyle(
-                                        fontSize: 20.0, fontWeight: FontWeight.bold),
-                                  )
+                                  Expanded(child: Column(
+                                    children: <Widget>[
+                                      Text(
+                                        poke.getIdToString(),
+                                        style: TextStyle(
+                                            fontSize: 10.0, fontWeight: FontWeight.bold),
+                                      ),
+                                      Text(
+                                        poke.name.japanese,
+                                        style: TextStyle(
+                                            fontSize: 20.0, fontWeight: FontWeight.bold),
+                                      )
+                                    ],
+
+                                  ))
                                 ],
                               ),
-                            ),
+//                            ),
                           )
                       ),
                   ))
